@@ -3,17 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Webcam Stream</title>
+    <title>JS Barcode Scanner</title>
+    <link rel="stylesheet" href="index.css" />
   </head>
+
   <body>
+    <h1>JavaScript Barcode Scanner</h1>
+
+    <hr />
+
     <button onclick="processFrame()">Snap!</button>
 
     <hr />
 
+    <h2>Live stream</h2>
     <video id="webcam" autoplay></video>
 
+    <h2>Color snap</h2>
     <canvas id="color"></canvas>
+
+    <h2>Grayscale (still image data)</h2>
     <canvas id="black-and-white"></canvas>
+
+    <h2>Grayscale (from matrix)</h2>
     <canvas id="matrix"></canvas>
 
     <script src="index.js"></script>

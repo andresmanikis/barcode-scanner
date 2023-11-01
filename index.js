@@ -25,6 +25,8 @@ function processFrame() {
   colorCanvas.height = videoElement.videoHeight;
   bwCanvas.width = videoElement.videoWidth;
   bwCanvas.height = videoElement.videoHeight;
+  matrixCanvas.width = videoElement.videoWidth;
+  matrixCanvas.height = videoElement.videoHeight;
 
   // Capture the video frame to the canvas
   colorCanvasContext.drawImage(
@@ -48,6 +50,7 @@ function processFrame() {
   bwCanvasContext.putImageData(imageData, 0, 0);
 
   const grayscaleMatrix = getGrayscaleMatrix(imageData);
+  drawGrayscaleMatrix(grayscaleMatrix, matrixCanvasContext);
 }
 
 startWebcam();
@@ -81,4 +84,16 @@ function getGrayscaleMatrix(imageData) {
   }
 
   return result;
+}
+
+function drawGrayscaleMatrix(matrix, ctx) {
+  for (let y = 0; y < matrix.length; y++) {
+    for (let x = 0; x < matrix[y].length; x++) {
+      const grayscale = matrix[y][x];
+      const color = `rgb(${grayscale},${grayscale},${grayscale})`;
+
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
 }
