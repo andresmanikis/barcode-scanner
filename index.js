@@ -9,6 +9,9 @@ const bwCanvasContext = bwCanvas.getContext("2d");
 const matrixCanvas = document.getElementById("matrix");
 const matrixCanvasContext = matrixCanvas.getContext("2d");
 
+const centralLineCanvas = document.getElementById("central-line");
+const centralLineCanvasContext = centralLineCanvas.getContext("2d");
+
 // Start streaming from the webcam
 async function startWebcam() {
   try {
@@ -27,6 +30,8 @@ function processFrame() {
   bwCanvas.height = videoElement.videoHeight;
   matrixCanvas.width = videoElement.videoWidth;
   matrixCanvas.height = videoElement.videoHeight;
+  centralLineCanvas.width = videoElement.videoWidth;
+  centralLineCanvas.height = videoElement.videoHeight;
 
   // Capture the video frame to the canvas
   colorCanvasContext.drawImage(
@@ -51,6 +56,7 @@ function processFrame() {
 
   const grayscaleMatrix = getGrayscaleMatrix(imageData);
   drawGrayscaleMatrix(grayscaleMatrix, matrixCanvasContext);
+  drawCentralLine(grayscaleMatrix, centralLineCanvasContext);
 }
 
 startWebcam();
@@ -90,6 +96,20 @@ function drawGrayscaleMatrix(matrix, ctx) {
   for (let y = 0; y < matrix.length; y++) {
     for (let x = 0; x < matrix[y].length; x++) {
       const grayscale = matrix[y][x];
+      const color = `rgb(${grayscale},${grayscale},${grayscale})`;
+
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+}
+
+function drawCentralLine(matrix, ctx) {
+  const centralLine = matrix.length / 2;
+
+  for (let y = 0; y < matrix.length; y++) {
+    for (let x = 0; x < matrix[centralLine].length; x++) {
+      const grayscale = matrix[centralLine][x];
       const color = `rgb(${grayscale},${grayscale},${grayscale})`;
 
       ctx.fillStyle = color;
