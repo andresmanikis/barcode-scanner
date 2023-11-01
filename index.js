@@ -54,6 +54,10 @@ function processFrame() {
 
   const centralLine = getCentralLine(grayscaleMatrix);
   drawPoints(centralLine, document.getElementById("central-line"));
+
+  const absDerivative = getAbsDerivative(centralLine);
+  console.log(absDerivative);
+  drawGraph(absDerivative, document.getElementById("abs-derivative"));
 }
 
 startWebcam();
@@ -118,5 +122,28 @@ function drawPoints(points, canvas) {
       ctx.fillStyle = color;
       ctx.fillRect(x, y, 1, 1);
     }
+  }
+}
+
+function getAbsDerivative(points) {
+  const result = [0];
+
+  for (let i = 1; i < points.length; i++) {
+    result.push(Math.abs(points[i] - points[i - 1]));
+  }
+
+  return result;
+}
+
+function drawGraph(points, canvas) {
+  canvas.width = points.length;
+  canvas.height = 300;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (let x = 0; x < points.length; x++) {
+    ctx.fillStyle = "green";
+    ctx.fillRect(x, 300 - points[x], 1, 1);
   }
 }
