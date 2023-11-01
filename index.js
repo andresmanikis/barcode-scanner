@@ -113,17 +113,41 @@ function drawGraph(points, canvas) {
   }
 }
 
-function smooth(points) {
+function smooth3(points) {
   const result = [];
 
-  // result.push(points[0]);
+  result.push(points[0]);
 
-  for (let i = 0; i < points.length - 0; i++) {
-    const avg = points[i];
+  for (let i = 1; i < points.length - 1; i++) {
+    const avg = (points[i - 1] + points[i] + points[i + 1]) / 3;
     result.push(avg);
   }
 
-  // result.push(points[points.length - 1]);
+  result.push(points[points.length - 1]);
+
+  return result;
+}
+
+function smooth5(points) {
+  const result = [];
+
+  result.push(points[0]);
+  result.push(points[1]);
+
+  for (let i = 2; i < points.length - 2; i++) {
+    const avg =
+      (points[i - 2] +
+        points[i - 1] +
+        points[i] +
+        points[i + 1] +
+        points[i + 2]) /
+      5;
+
+    result.push(avg);
+  }
+
+  result.push(points[points.length - 2]);
+  result.push(points[points.length - 1]);
 
   return result;
 }
@@ -174,13 +198,13 @@ function processFrame() {
   const centralLine = getCentralLine(grayscaleMatrix);
   // drawPoints(centralLine, document.getElementById("central-line"));
 
-  const smoothCentralLine = smooth(centralLine);
+  const smoothCentralLine = smooth5(centralLine);
   // drawPoints(smoothCentralLine, document.getElementById("smooth"));
 
   const absDerivative = getAbsDerivative(smoothCentralLine);
   drawGraph(absDerivative, document.getElementById("abs-derivative"));
 
-  const absDerivativeWithTreshold = treshold(absDerivative, 40);
+  const absDerivativeWithTreshold = treshold(absDerivative, 20);
   drawGraph(
     absDerivativeWithTreshold.map((p) => p * 100),
     document.getElementById("abs-derivative-treshold")
