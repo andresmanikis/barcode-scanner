@@ -13,11 +13,15 @@
     <hr />
 
     <button onclick="processFrame()">Snap!</button>
+    <button onclick="processFrame()">Process image</button>
 
     <hr />
 
     <h2>Live stream</h2>
     <video id="webcam" autoplay></video>
+
+    <h2>Image</h2>
+    <img id="image" src="barcode.png" />
 
     <h2>Color snap</h2>
     <canvas id="color"></canvas>
@@ -31,8 +35,17 @@
     <h2>Central line</h2>
     <canvas id="central-line"></canvas>
 
+    <h2>Smooth central line</h2>
+    <canvas id="smooth"></canvas>
+
     <h2>Abs derivative</h2>
     <canvas id="abs-derivative"></canvas>
+
+    <h2>Abs derivative with treshold</h2>
+    <canvas id="abs-derivative-treshold"></canvas>
+
+    <h2>Edges</h2>
+    <canvas id="edges"></canvas>
 
     <script src="index.js"></script>
   </body>

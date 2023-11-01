@@ -1,4 +1,5 @@
 const videoElement = document.getElementById("webcam");
+const imgElement = document.getElementById("image");
 
 const colorCanvas = document.getElementById("color");
 const colorCanvasContext = colorCanvas.getContext("2d");
@@ -9,58 +10,17 @@ const bwCanvasContext = bwCanvas.getContext("2d");
 const matrixCanvas = document.getElementById("matrix");
 const matrixCanvasContext = matrixCanvas.getContext("2d");
 
-// Start streaming from the webcam
+// startWebcam();
+processFrame();
+
 async function startWebcam() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     videoElement.srcObject = stream;
   } catch (err) {
-    console.error("Error accessing webcam:", err);
+    alert("Error accessing webcam:" + err.message);
   }
 }
-
-function processFrame() {
-  // Set the canvas dimensions to match video dimensions
-  colorCanvas.width = videoElement.videoWidth;
-  colorCanvas.height = videoElement.videoHeight;
-  bwCanvas.width = videoElement.videoWidth;
-  bwCanvas.height = videoElement.videoHeight;
-  matrixCanvas.width = videoElement.videoWidth;
-  matrixCanvas.height = videoElement.videoHeight;
-
-  // Capture the video frame to the canvas
-  colorCanvasContext.drawImage(
-    videoElement,
-    0,
-    0,
-    videoElement.videoWidth,
-    videoElement.videoHeight
-  );
-
-  // Get the image data from the canvas
-  const imageData = colorCanvasContext.getImageData(
-    0,
-    0,
-    videoElement.videoWidth,
-    videoElement.videoHeight
-  );
-
-  mutateToGrayscale(imageData);
-
-  bwCanvasContext.putImageData(imageData, 0, 0);
-
-  const grayscaleMatrix = getGrayscaleMatrix(imageData);
-  drawGrayscaleMatrix(grayscaleMatrix, matrixCanvasContext);
-
-  const centralLine = getCentralLine(grayscaleMatrix);
-  drawPoints(centralLine, document.getElementById("central-line"));
-
-  const absDerivative = getAbsDerivative(centralLine);
-  console.log(absDerivative);
-  drawGraph(absDerivative, document.getElementById("abs-derivative"));
-}
-
-startWebcam();
 
 function mutateToGrayscale(imageData) {
   const data = imageData.data;
@@ -93,7 +53,11 @@ function getGrayscaleMatrix(imageData) {
   return result;
 }
 
-function drawGrayscaleMatrix(matrix, ctx) {
+function drawGrayscaleMatrix(matrix, canvas) {
+  canvas.height = matrix.length;
+  canvas.width = matrix[0].length;
+  const ctx = canvas.getContext("2d");
+
   for (let y = 0; y < matrix.length; y++) {
     for (let x = 0; x < matrix[y].length; x++) {
       const grayscale = matrix[y][x];
@@ -142,8 +106,86 @@ function drawGraph(points, canvas) {
 
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  ctx.fillStyle = "green";
+
   for (let x = 0; x < points.length; x++) {
-    ctx.fillStyle = "green";
     ctx.fillRect(x, 300 - points[x], 1, 1);
   }
+}
+
+function smooth(points) {
+  const result = [];
+
+  // result.push(points[0]);
+
+  for (let i = 0; i < points.length - 0; i++) {
+    const avg = points[i];
+    result.push(avg);
+  }
+
+  // result.push(points[points.length - 1]);
+
+  return result;
+}
+
+function treshold(points, t) {
+  return points.map((p) => (p >= t ? 1 : 0));
+}
+
+function drawEdges(edges, canvas) {
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "green";
+
+  for (let x = 0; x < edges.length; x++) {
+    if (edges[x] > 0) {
+      ctx.fillRect(x, 0, 1, canvas.height / 2);
+    }
+  }
+}
+
+function processFrame() {
+  colorCanvas.width = imgElement.width;
+  colorCanvas.height = imgElement.height;
+  bwCanvas.width = imgElement.width;
+  bwCanvas.height = imgElement.height;
+
+  colorCanvasContext.drawImage(
+    imgElement,
+    0,
+    0,
+    imgElement.width,
+    imgElement.height
+  );
+
+  const imageData = colorCanvasContext.getImageData(
+    0,
+    0,
+    imgElement.width,
+    imgElement.height
+  );
+
+  mutateToGrayscale(imageData);
+
+  bwCanvasContext.putImageData(imageData, 0, 0);
+
+  const grayscaleMatrix = getGrayscaleMatrix(imageData);
+  // drawGrayscaleMatrix(grayscaleMatrix, matrixCanvas);
+
+  const centralLine = getCentralLine(grayscaleMatrix);
+  // drawPoints(centralLine, document.getElementById("central-line"));
+
+  const smoothCentralLine = smooth(centralLine);
+  // drawPoints(smoothCentralLine, document.getElementById("smooth"));
+
+  const absDerivative = getAbsDerivative(smoothCentralLine);
+  drawGraph(absDerivative, document.getElementById("abs-derivative"));
+
+  const absDerivativeWithTreshold = treshold(absDerivative, 40);
+  drawGraph(
+    absDerivativeWithTreshold.map((p) => p * 100),
+    document.getElementById("abs-derivative-treshold")
+  );
+
+  drawPoints(smoothCentralLine, document.getElementById("edges"));
+  drawEdges(absDerivativeWithTreshold, document.getElementById("edges"));
 }
