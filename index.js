@@ -53,7 +53,7 @@ function processFrame() {
   drawGrayscaleMatrix(grayscaleMatrix, matrixCanvasContext);
 
   const centralLine = getCentralLine(grayscaleMatrix);
-  drawCentralLine(centralLine, document.getElementById("central-line"));
+  drawPoints(centralLine, document.getElementById("central-line"));
 }
 
 startWebcam();
@@ -105,7 +105,7 @@ function getCentralLine(matrix) {
   return matrix[Math.floor(matrix.length / 2)];
 }
 
-function drawCentralLine(points, canvas) {
+function drawPoints(points, canvas) {
   canvas.width = points.length;
   canvas.height = 100;
   const ctx = canvas.getContext("2d");
