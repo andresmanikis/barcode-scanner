@@ -1,9 +1,6 @@
 const videoElement = document.getElementById("webcam");
 const imgElement = document.getElementById("image");
 
-const colorCanvas = document.getElementById("color");
-const colorCanvasContext = colorCanvas.getContext("2d");
-
 const bwCanvas = document.getElementById("black-and-white");
 const bwCanvasContext = bwCanvas.getContext("2d");
 
@@ -11,7 +8,6 @@ const matrixCanvas = document.getElementById("matrix");
 const matrixCanvasContext = matrixCanvas.getContext("2d");
 
 // startWebcam();
-processFrame();
 
 async function startWebcam() {
   try {
@@ -89,11 +85,11 @@ function drawPoints(points, canvas) {
   }
 }
 
-function getAbsDerivative(points) {
+function getDerivative(points) {
   const result = [0];
 
   for (let i = 1; i < points.length; i++) {
-    result.push(Math.abs(points[i] - points[i - 1]));
+    result.push(points[i] - points[i - 1]);
   }
 
   return result;
@@ -106,10 +102,14 @@ function drawGraph(points, canvas) {
 
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = "green";
-
   for (let x = 0; x < points.length; x++) {
-    ctx.fillRect(x, 300 - points[x], 1, 1);
+    if (points[x] >= 0) {
+      ctx.fillStyle = "green";
+      ctx.fillRect(x, 300 - points[x], 1, 1);
+    } else {
+      ctx.fillStyle = "red";
+      ctx.fillRect(x, 300 + points[x], 1, 1);
+    }
   }
 }
 
@@ -152,22 +152,78 @@ function smooth5(points) {
   return result;
 }
 
-function treshold(points, t) {
-  return points.map((p) => (p >= t ? 1 : 0));
+function absTreshold(points, t) {
+  return points.map((p) => {
+    if (Math.abs(p) > t) {
+      return p > 0 ? -1 : 1;
+    } else {
+      return 0;
+    }
+  });
 }
 
 function drawEdges(edges, canvas) {
   const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "green";
 
   for (let x = 0; x < edges.length; x++) {
+    if (edges[x] === 0) continue;
+
     if (edges[x] > 0) {
-      ctx.fillRect(x, 0, 1, canvas.height / 2);
+      ctx.fillStyle = "green";
+    } else if (edges[x] < 0) {
+      ctx.fillStyle = "red";
     }
+
+    ctx.fillRect(x, 0, 1, canvas.height / 2);
   }
 }
 
+function normalise(points) {
+  const max = Math.max(...points.map((p) => Math.abs(p)));
+  return points.map((p) => (p / max) * 100);
+}
+
+function getBarWidths(edges) {
+  const result = [];
+
+  let barStart = -1;
+  let currentBar = "NONE";
+
+  for (let i = 0; i < edges.length; i++) {
+    const e = edges[i];
+
+    if (e === 0) continue;
+
+    if (currentBar === "NONE") {
+      if (e === 1) {
+        currentBar = "BLACK";
+      } else {
+        currentBar = "WHITE";
+      }
+
+      barStart = i;
+    } else if (currentBar === "BLACK") {
+      if (e === -1) {
+        currentBar = "WHITE";
+        result.push({ color: "BLACK", width: i - barStart });
+        barStart = i;
+      }
+    } else if (currentBar === "WHITE") {
+      if (e === 1) {
+        currentBar = "BLACK";
+        result.push({ color: "WHITE", width: i - barStart });
+        barStart = i;
+      }
+    }
+  }
+
+  return result;
+}
+
 function processFrame() {
+  const colorCanvas = document.getElementById("color");
+  const colorCanvasContext = colorCanvas.getContext("2d");
+
   colorCanvas.width = imgElement.width;
   colorCanvas.height = imgElement.height;
   bwCanvas.width = imgElement.width;
@@ -198,18 +254,24 @@ function processFrame() {
   const centralLine = getCentralLine(grayscaleMatrix);
   // drawPoints(centralLine, document.getElementById("central-line"));
 
-  const smoothCentralLine = smooth5(centralLine);
+  const smoothCentralLine = centralLine;
   // drawPoints(smoothCentralLine, document.getElementById("smooth"));
 
-  const absDerivative = getAbsDerivative(smoothCentralLine);
-  drawGraph(absDerivative, document.getElementById("abs-derivative"));
+  const derivative = normalise(getDerivative(smoothCentralLine));
+  drawGraph(derivative, document.getElementById("derivative"));
 
-  const absDerivativeWithTreshold = treshold(absDerivative, 20);
+  const derivativeWithAbsTreshold = absTreshold(derivative, 20);
   drawGraph(
-    absDerivativeWithTreshold.map((p) => p * 100),
-    document.getElementById("abs-derivative-treshold")
+    derivativeWithAbsTreshold.map((p) => p * 100),
+    document.getElementById("derivative-abs-treshold")
   );
 
   drawPoints(smoothCentralLine, document.getElementById("edges"));
-  drawEdges(absDerivativeWithTreshold, document.getElementById("edges"));
+  drawEdges(derivativeWithAbsTreshold, document.getElementById("edges"));
+
+  const barWidths = getBarWidths(derivativeWithAbsTreshold);
+
+  console.log("Bar widths", barWidths);
 }
+
+processFrame();
