@@ -220,6 +220,28 @@ function getBarWidths(edges) {
   return result;
 }
 
+function drawCalculated(widths) {
+  const canvas = document.getElementById("calculated");
+  const ctx = canvas.getContext("2d");
+
+  const totalWidth = widths.reduce((acc, w) => acc + w.width, 0);
+
+  canvas.width = totalWidth;
+  canvas.height = 100;
+
+  let currentX = 0;
+  widths.forEach((w) => {
+    if (w.color === "BLACK") {
+      ctx.fillStyle = "black";
+    } else {
+      ctx.fillStyle = "white";
+    }
+
+    ctx.fillRect(currentX, 0, w.width, canvas.height);
+    currentX += w.width;
+  });
+}
+
 function processFrame() {
   const colorCanvas = document.getElementById("color");
   const colorCanvasContext = colorCanvas.getContext("2d");
@@ -272,6 +294,8 @@ function processFrame() {
   const barWidths = getBarWidths(derivativeWithAbsTreshold);
 
   console.log("Bar widths", barWidths);
+
+  drawCalculated(barWidths);
 }
 
 processFrame();
