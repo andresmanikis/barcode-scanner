@@ -242,6 +242,52 @@ function drawCalculated(widths) {
   });
 }
 
+function areVerySimilar(w1, w2) {
+  return Math.abs(1 - w1 / w2) < 0.3;
+}
+
+function findStart(widths) {
+  for (let i = 2; i < widths.length; i++) {
+    const w1 = widths[i - 2].width;
+    const w2 = widths[i - 1].width;
+    const w3 = widths[i].width;
+
+    if (!areVerySimilar(w1, w2)) continue;
+    if (!areVerySimilar(w2, w3)) continue;
+
+    return i - 2;
+  }
+}
+
+function getSegments(widths) {
+  const result = [];
+
+  const start = findStart(widths);
+
+  let currentBar = start + 3; // Skip the start bars
+
+  push6Numbers();
+
+  currentBar += 5; // Skip the center bars
+
+  push6Numbers();
+
+  return result;
+
+  function push6Numbers() {
+    for (let i = 0; i < 6; i++) {
+      const segment = [];
+
+      for (let j = 0; j < 4; j++) {
+        segment.push(widths[currentBar]);
+        currentBar++;
+      }
+
+      result.push(segment);
+    }
+  }
+}
+
 function processFrame() {
   const colorCanvas = document.getElementById("color");
   const colorCanvasContext = colorCanvas.getContext("2d");
@@ -296,6 +342,11 @@ function processFrame() {
   console.log("Bar widths", barWidths);
 
   drawCalculated(barWidths);
+
+  const segments = getSegments(barWidths);
+  console.log(segments);
+
+  drawOneNumber(segments[0]);
 }
 
 processFrame();
